@@ -54,9 +54,8 @@ def run():
 						min_distance = distance
 
 				try:
-					print('sending {}'.format(str(closest_details)))
 					send_message(update, str(closest_details))
-					send_location(update, station.latitude, station.longitude)
+					send_location(update, closest_station.latitude, closest_station.longitude)
 				except CannotSendResponseError:
 					continue
 
