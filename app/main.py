@@ -1,14 +1,9 @@
 import os
-from app import server
-import requests
-from collections import namedtuple
-import json
-import math
-import flask
-import pickle
 import time
+import requests
+import math
 
-from .vlille import parse, get_details, format_details
+from .vlille import Vlille, StationDetail
 from .utils import get_last_update, set_last_update
 from .telegram import get_updates, send_location, send_message
 
@@ -43,29 +38,28 @@ def run():
 			else:
 				location = update['message']['location']
 				min_distance = None
-				closest = None
-
-				for identifier, s in stations.items():
-					distance = math.hypot(location['latitude'] - s['lat'],
-						  				  location['longitude'] - s['lng'])
-					if not closest or distance <= min_distance:
-						details = get_details(identifier)
-						if int(details['bikes']) == 0:
+				closest_id = None
+				
+				for identifier, station in Vlille.stations.items():
+					distance = math.hypot(location['latitude'] - station.latitude,
+						  				  location['longitude'] - station.longitude)
+					if not closest_id or distance <= min_distance:
+						print('got closest {}'.format(distance))
+						details = station.get_details()
+						if details.bikes == 0:
 							continue
-						print('identifying {}'.format(identifier))
-						print('station {}'.format(s))
-						closest = identifier
+						closest_id = identifier
+						closest_station = station
 						closest_details = details
 						min_distance = distance
 
 				try:
-					send_message(update, format_details(closest_details))
-					send_location(update, stations[closest]['lat'], stations[closest]['lng'])
+					send_message(update, str(closest_details))
+					send_location(update, closest_station.latitude, closest_station.longitude)
 				except CannotSendResponseError:
 					continue
 
-		time.sleep(5)
+		time.sleep(0.5)
 
 
-parse()
-from .vlille import stations
+Vlille.parse()

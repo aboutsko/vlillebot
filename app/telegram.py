@@ -34,5 +34,4 @@ def send_location(update, lat, lng):
 		raise CannotSendResponseError
 
 def get_updates(offset):
-	req = requests.get('{}/getUpdates?offset={}'.format(URI, offset)).content
-	return json.loads(req.decode("utf-8"))
+	return requests.get('{}/getUpdates?offset={}'.format(URI, offset)).json()
